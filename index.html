@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>ماشین‌حساب تخصیص حقوق</title>
+<style>
+  @font-face {
+    font-family: 'Vazir';
+    src: local('Vazirmatn'), local('Tahoma');
+  }
+  :root{
+    --bg: #16191c;
+    --panel: #1e2226;
+    --border: #2b3034;
+    --gold: #e8b830;
+    --teal: #4fc3b0;
+    --red: #e0645a;
+    --text: #f2f2f0;
+    --muted: #9aa1a6;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background: radial-gradient(circle at 20% 10%, #202427, #131518 60%);
+    font-family: Vazirmatn, Tahoma, sans-serif;
+    color: var(--text);
+    padding: 28px 16px 60px;
+  }
+  .wrap{max-width: 680px; margin: 0 auto;}
+  h1{
+    font-size: 22px;
+    text-align:center;
+    margin: 0 0 4px;
+    color: var(--gold);
+  }
+  .sub{
+    text-align:center;
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 22px;
+  }
+  .input-box{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 18px;
+  }
+  .input-box label{
+    display:block;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .input-row{
+    display:flex;
+    align-items:center;
+    gap: 8px;
+  }
+  input[type=text], select{
+    background: #0f1113;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-size: 15px;
+    font-family: inherit;
+    text-align: right;
+  }
+  input[type=text]{flex:1; font-size: 18px;}
+  input[type=text]:focus, select:focus{
+    outline: none;
+    border-color: var(--gold);
+  }
+  .unit{color: var(--muted); font-size: 14px; white-space:nowrap;}
+  .total-line{
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .section-title{
+    font-size: 14px;
+    color: var(--muted);
+    margin: 24px 4px 10px;
+  }
+
+  .expense-form{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    display:flex;
+    flex-direction:column;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .expense-form .row{
+    display:flex;
+    gap: 8px;
+  }
+  .expense-form select{ flex: 1.4; }
+  .expense-form input[name=amount]{ flex: 1; font-size:15px; }
+  .expense-form input[name=note]{ flex: 1; font-size: 14px; }
+  .add-btn{
+    background: var(--gold);
+    color: #16191c;
+    border: none;
+    border-radius: 10px;
+    padding: 11px;
+    font-family: inherit;
+    font-size: 14.5px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .add-btn:hover{ filter: brightness(1.08); }
+
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  @media (max-width:480px){
+    .grid{grid-template-columns: 1fr;}
+    .expense-form .row{flex-direction:column;}
+  }
+  .card{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    cursor: pointer;
+  }
+  .card-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 10px;
+  }
+  .card .label{
+    font-size: 13.5px;
+    line-height:1.5;
+  }
+  .card .pct{
+    color: var(--muted);
+    font-size: 11px;
+    display:block;
+  }
+  .card .val{
+    font-weight:bold;
+    font-size: 13.5px;
+    white-space: nowrap;
+    text-align:left;
+  }
+  .card .val .budget{ color: var(--muted); font-weight:normal; font-size: 11px; display:block; }
+  .card .val .remain{ color: var(--teal); }
+  .card .val .remain.over{ color: var(--red); }
+
+  .bar-track{
+    height: 5px;
+    border-radius: 4px;
+    background: #0f1113;
+    margin-top: 8px;
+    overflow:hidden;
+  }
+  .bar-fill{
+    height:100%;
+    background: var(--teal);
+    border-radius: 4px;
+  }
+  .bar-fill.over{ background: var(--red); }
+
+  .expense-list{
+    margin-top: 10px;
+    border-top: 1px dashed var(--border);
+    padding-top: 8px;
+    display:none;
+  }
+  .expense-list.open{ display:block; }
+  .expense-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size: 12px;
+    color: var(--muted);
+    padding: 4px 0;
+  }
+  .expense-item .del{
+    color: var(--red);
+    cursor:pointer;
+    font-size: 13px;
+    padding: 0 4px;
+  }
+
+  .sum-card{
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, #22262a, #1a1d20);
+    border: 1px solid var(--gold);
+    cursor:default;
+  }
+  .sum-card .val{ color: var(--gold); font-size: 15px;}
+
+  .note{
+    text-align:center;
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ماشین‌حساب تخصیص حقوق</h1>
+  <div class="sub">بر اساس نسبت‌های الگوی «۷۰ میلیون در ماه»</div>
+
+  <div class="input-box">
+    <label>حقوق ماهانه خودت رو وارد کن</label>
+    <div class="input-row">
+      <input type="text" id="salaryInput" placeholder="مثلاً ۴۵۰۰۰۰۰۰" inputmode="numeric">
+      <span class="unit">تومان</span>
+    </div>
+    <div class="total-line" id="totalLine"></div>
+  </div>
+
+  <div class="section-title">ثبت هزینه واقعی</div>
+  <div class="expense-form">
+    <div class="row">
+      <select id="catSelect"></select>
+      <input type="text" name="amount" id="amountInput" placeholder="مبلغ (تومان)" inputmode="numeric">
+    </div>
+    <div class="row">
+      <input type="text" name="note" id="noteInput" placeholder="توضیح (اختیاری)">
+    </div>
+    <button class="add-btn" id="addBtn">افزودن هزینه</button>
+  </div>
+
+  <div class="section-title">وضعیت هر دسته (روی هرکدوم بزن تا هزینه‌هاش رو ببینی)</div>
+  <div class="grid" id="results"></div>
+
+  <div class="note">این تخصیص فقط یک الگوی پیشنهادیه؛ بسته به شرایط واقعی زندگیت (مسکن، خانواده، بدهی) تنظیمش کن. اطلاعات فقط روی همین مرورگر تو ذخیره می‌شه.</div>
+</div>
+
+<script>
+const categories = [
+  { key: "پس‌انداز برای اهداف بزرگ", pct: 28/75 },
+  { key: "قسط و بدهی", pct: 17/75 },
+  { key: "خرید سوپرمارکت", pct: 9/75 },
+  { key: "هزینه شخصی (لباس، آرایشگاه...)", pct: 5/75 },
+  { key: "بیرون غذا خوردن", pct: 4/75 },
+  { key: "قبض و شارژ ساختمان", pct: 3/75 },
+  { key: "باشگاه و سلامتی", pct: 3/75 },
+  { key: "تفریح و گردش", pct: 3/75 },
+  { key: "پس‌انداز روز مبادا", pct: 1.5/75 },
+  { key: "بنزین", pct: 1/75 },
+  { key: "اشتراک‌ها و مالیات", pct: 0.5/75 },
+];
+
+let state = { salary: 0, expenses: [] }; // expenses: {id, cat, amount, note}
+let openCard = null;
+const STORAGE_KEY = 'salary-allocator-state';
+
+const salaryInput = document.getElementById('salaryInput');
+const resultsEl = document.getElementById('results');
+const totalLine = document.getElementById('totalLine');
+const catSelect = document.getElementById('catSelect');
+const amountInput = document.getElementById('amountInput');
+const noteInput = document.getElementById('noteInput');
+const addBtn = document.getElementById('addBtn');
+
+catSelect.innerHTML = categories.map((c,i)=>`<option value="${i}">${c.key}</option>`).join('');
+
+function toEnglishDigits(str){
+  const persian = '۰۱۲۳۴۵۶۷۸۹';
+  return str.replace(/[۰-۹]/g, d => persian.indexOf(d));
+}
+function formatNum(n){
+  return Math.round(n).toLocaleString('en-US');
+}
+function parseAmount(str){
+  const raw = toEnglishDigits(str).replace(/[^\d]/g,'');
+  return parseInt(raw || '0', 10);
+}
+
+async function saveState(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }catch(e){ console.error('ذخیره‌سازی ناموفق بود', e); }
+}
+async function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      state.salary = parsed.salary || 0;
+      state.expenses = parsed.expenses || [];
+    }
+  }catch(e){
+    // چیزی ذخیره نشده یا خطا -> از حالت پیش‌فرض استفاده می‌کنیم
+  }
+}
+
+function render(){
+  salaryInput.value = state.salary ? formatNum(state.salary) : '';
+  resultsEl.innerHTML = '';
+
+  let totalBudget = 0, totalSpent = 0;
+
+  categories.forEach((cat, idx) => {
+    const budget = state.salary * cat.pct;
+    const spent = state.expenses.filter(e => e.cat === idx).reduce((s,e)=>s+e.amount,0);
+    const remain = budget - spent;
+    totalBudget += budget;
+    totalSpent += spent;
+
+    const pctUsed = budget > 0 ? Math.min(100, (spent/budget)*100) : 0;
+    const over = remain < 0;
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.idx = idx;
+
+    const catExpenses = state.expenses.filter(e => e.cat === idx);
+    const listHtml = catExpenses.length
+      ? catExpenses.map(e => `
+          <div class="expense-item">
+            <span>${e.note ? e.note + ' — ' : ''}${formatNum(e.amount)} تومان</span>
+            <span class="del" data-id="${e.id}">حذف</span>
+          </div>`).join('')
+      : `<div class="expense-item">هنوز هزینه‌ای ثبت نشده</div>`;
+
+    card.innerHTML = `
+      <div class="card-top">
+        <div class="label">${cat.key}<span class="pct">${(cat.pct*100).toFixed(1)}٪</span></div>
+        <div class="val">
+          <span class="budget">${state.salary ? formatNum(budget) : '—'}</span>
+          <span class="remain ${over?'over':''}">${state.salary ? (over ? 'کسری ' : 'باقی‌مونده ') + formatNum(Math.abs(remain)) : ''}</span>
+        </div>
+      </div>
+      <div class="bar-track"><div class="bar-fill ${over?'over':''}" style="width:${pctUsed}%"></div></div>
+      <div class="expense-list ${openCard===idx?'open':''}">${listHtml}</div>
+    `;
+    resultsEl.appendChild(card);
+  });
+
+  const totalRemain = totalBudget - totalSpent;
+  const sumCard = document.createElement('div');
+  sumCard.className = 'card sum-card';
+  sumCard.innerHTML = `
+    <div class="card-top">
+      <div class="label">جمع کل</div>
+      <div class="val">
+        <span class="budget">حقوق: ${state.salary ? formatNum(state.salary) : '—'}</span>
+        <span class="remain ${totalRemain<0?'over':''}">${state.salary ? (totalRemain<0?'کسری ':'باقی‌مونده ') + formatNum(Math.abs(totalRemain)) : ''}</span>
+      </div>
+    </div>
+  `;
+  resultsEl.appendChild(sumCard);
+
+  totalLine.textContent = state.salary
+    ? `هزینه ثبت شده: ${formatNum(totalSpent)} تومان از ${formatNum(state.salary)} تومان`
+    : '';
+
+  // بایند کردن رویداد باز/بسته شدن کارت‌ها
+  resultsEl.querySelectorAll('.card:not(.sum-card)').forEach(c => {
+    c.addEventListener('click', (ev) => {
+      if(ev.target.classList.contains('del')) return;
+      const idx = parseInt(c.dataset.idx, 10);
+      openCard = openCard === idx ? null : idx;
+      render();
+    });
+  });
+  resultsEl.querySelectorAll('.del').forEach(d => {
+    d.addEventListener('click', async (ev) => {
+      ev.stopPropagation();
+      const id = d.dataset.id;
+      state.expenses = state.expenses.filter(e => e.id !== id);
+      await saveState();
+      render();
+    });
+  });
+}
+
+salaryInput.addEventListener('input', async () => {
+  state.salary = parseAmount(salaryInput.value);
+  await saveState();
+  render();
+});
+
+addBtn.addEventListener('click', async () => {
+  const amount = parseAmount(amountInput.value);
+  if(!amount){ amountInput.focus(); return; }
+  const cat = parseInt(catSelect.value, 10);
+  const note = noteInput.value.trim();
+  state.expenses.push({ id: Date.now().toString(36)+Math.random().toString(36).slice(2), cat, amount, note });
+  openCard = cat;
+  amountInput.value = '';
+  noteInput.value = '';
+  await saveState();
+  render();
+});
+
+(async () => {
+  await loadState();
+  render();
+})();
+</script>
+</body>
+</html>
