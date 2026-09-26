@@ -1,0 +1,12 @@
+{
+  "appId": "ir.samsakian4.salaryallocator",
+  "appName": "تخصیص حقوق",
+  "webDir": "www",
+  "server": {
+    "url": "https://salary-allocator-app.netlify.app",
+    "cleartext": false
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
